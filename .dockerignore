@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.git/
+.github/
+frontend/
+*.csv
+data/
+embeddings/
+seed_pinecone.py
+ui.py
+.vscode/
+.idea/
+

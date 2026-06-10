@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+.venv/
+venv/
+env/
+.conda/
+.python-version
+Pipfile.lock
+*.whl
+*.so
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+backend/db/.env
+
+# Data files
+*.csv
+*.xls
+*.xlsx
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*~
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Backend
+backend/**/*.pyc
+backend/db/*.db
+backend/db/*.sqlite3
+
+# Frontend (nested, catch stray artifacts at root level)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*

@@ -59,9 +59,7 @@ db_connection = psycopg2.connect(
 cursor = db_connection.cursor()
 
 
-# =========================
 # Google Embeddings
-# =========================
 
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 
@@ -72,7 +70,7 @@ embed_model = GoogleGenerativeAIEmbeddings(
 
 # =========================
 # Fetch Data
-# =========================
+
 
 def fetch_data():
     query = "SELECT * FROM products"

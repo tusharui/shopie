@@ -54,17 +54,13 @@ export default function Home() {
       });
     }
 
-    const nums = q.match(/\d[\d,]*\d/g);
-    if (nums) {
-      const prices = nums.map((n) => parseInt(n.replace(/,/g, ""), 10));
-      if (/under|below|less than|within/.test(q) && prices.length > 0) {
-        filtered = filtered.filter((p) => p.price <= prices[0]);
-      } else if (/above|over|more than|greater than/.test(q) && prices.length > 0) {
-        filtered = filtered.filter((p) => p.price >= prices[0]);
-      } else if (/between/.test(q) && prices.length >= 2) {
-        const min = Math.min(...prices);
-        const max = Math.max(...prices);
-        filtered = filtered.filter((p) => p.price >= min && p.price <= max);
+    const digitWords = q.split(/\s+/).filter((w) => /^\d[\d,]*\d$/.test(w));
+    if (digitWords.length > 0) {
+      const price = parseInt(digitWords[0].replace(/,/g, ""), 10);
+      if (/under|below|less than|within/.test(q)) {
+        filtered = filtered.filter((p) => Number(p.price) <= price);
+      } else if (/above|over|more than|greater than/.test(q)) {
+        filtered = filtered.filter((p) => Number(p.price) >= price);
       }
     }
   }

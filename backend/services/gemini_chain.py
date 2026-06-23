@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from psycopg2.extras import RealDictCursor
 from db.dbconnect import get_db_connection
 
-load_dotenv(dotenv_path="backend/db/.env")
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "db", ".env"))
 
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
@@ -52,7 +52,7 @@ def extract_filters(query):
         "max_price": max_price,
     }
 
-def query_db(filters, limit=8):
+def query_db(filters, limit=50):
     conditions = []
     params = []
 

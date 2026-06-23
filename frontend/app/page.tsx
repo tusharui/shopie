@@ -6,6 +6,7 @@ import ChatSidebar from "@/components/ChatSidebar";
 import ProductCard from "@/components/ProductCard";
 
 type Product = {
+  productid?: number;
   productname: string;
   productbrand: string;
   gender: string;
@@ -14,13 +15,15 @@ type Product = {
   description: string;
 };
 
+const STOP_WORDS = new Set(["show", "me", "the", "a", "an", "for", "under", "below", "above", "over", "with", "and", "or", "in", "of", "to", "is", "are", "all", "that", "this", "please", "can", "you", "i", "want", "need", "some", "my", "your", "get", "find", "have", "any", "it", "do", "does", "not", "but", "up", "down", "out", "off", "on", "no", "just", "more", "less", "than", "between", "price", "products", "shoes", "shoe", "footwear"]);
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [brand, setBrand] = useState("All");
   const [gender, setGender] = useState("All");
   const [sort, setSort] = useState("Default");
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -29,55 +32,68 @@ export default function Home() {
       .catch(() => setError("Could not connect to backend. Make sure the server is running."));
   }, []);
 
-  const brands = Array.from(new Set(products.map((p) => p.productbrand))).sort();
-  const genders = Array.from(new Set(products.map((p) => p.gender))).sort();
+  useEffect(() => {
+    let result = [...products];
 
-  const STOP_WORDS = new Set(["show", "me", "the", "a", "an", "for", "under", "below", "above", "over", "with", "and", "or", "in", "of", "to", "is", "are", "all", "that", "this", "please", "can", "you", "i", "want", "need", "some", "my", "your", "get", "find", "have", "any", "it", "do", "does", "not", "but", "up", "down", "out", "off", "on", "no", "just", "more", "less", "than", "between", "price", "products"]);
-  const COLORS = new Set(["black", "white", "blue", "red", "green", "grey", "gray", "pink", "purple", "orange", "brown", "beige", "cream", "navy", "coral", "olive", "multi"]);
-  const BRANDS = new Set(["nike", "adidas", "puma", "reebok", "asics", "converse", "vans", "new balance", "on running", "salomon", "decathlon"]);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
 
-  let filtered = products;
+      const tokens = q.split(/\s+/);
+      const hasPriceDigits = tokens.some((t) => /^\d[\d,]*\d$/.test(t.replace(/,/g, "")));
+      const hasPriceKeyword = /\b(under|below|above|over|between|within|less|more|greater)\b/.test(q);
+      const hasPriceQualifier = hasPriceKeyword && hasPriceDigits;
 
-  if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    const words = q.split(/\s+/).filter((w) => w.length > 1 && !STOP_WORDS.has(w) && !/^\d+$/.test(w));
-    if (words.length > 0) {
-      filtered = filtered.filter((p) => {
-        const name = p.productname.toLowerCase();
-        const brand = p.productbrand.toLowerCase();
-        const desc = p.description.toLowerCase();
-        const color = p.primarycolor.toLowerCase();
-        const gender = p.gender.toLowerCase();
-        return words.some(
-          (w) => name.includes(w) || brand.includes(w) || desc.includes(w) || color.includes(w) || gender.includes(w)
-        );
-      });
-    }
+      if (!hasPriceQualifier) {
+        const words = q.split(/\s+/).filter((w) => w.length > 1 && !STOP_WORDS.has(w) && !/^\d+$/.test(w));
+        if (words.length > 0) {
+          result = result.filter((p) => {
+            const name = p.productname.toLowerCase();
+            const brand = p.productbrand.toLowerCase();
+            const desc = p.description.toLowerCase();
+            const color = p.primarycolor.toLowerCase();
+            const gender = p.gender.toLowerCase();
+            return words.some(
+              (w) => name.includes(w) || brand.includes(w) || desc.includes(w) || color.includes(w) || gender.includes(w)
+            );
+          });
+        }
+      }
 
-    const digitWords = q.split(/\s+/).filter((w) => /^\d[\d,]*\d$/.test(w));
-    if (digitWords.length > 0) {
-      const price = parseInt(digitWords[0].replace(/,/g, ""), 10);
-      if (/under|below|less than|within/.test(q)) {
-        filtered = filtered.filter((p) => Number(p.price) <= price);
-      } else if (/above|over|more than|greater than/.test(q)) {
-        filtered = filtered.filter((p) => Number(p.price) >= price);
+      for (const token of tokens) {
+        const cleaned = token.replace(/,/g, "");
+        if (/^\d+$/.test(cleaned)) {
+          const price = parseInt(cleaned, 10);
+          if (!isNaN(price) && price > 0) {
+            if (/under|below|less than|within/.test(q)) {
+              result = result.filter((p) => Number(p.price) <= price);
+            } else if (/above|over|more than|greater than/.test(q)) {
+              result = result.filter((p) => Number(p.price) >= price);
+            }
+          }
+          break;
+        }
       }
     }
-  }
 
-  if (brand !== "All") {
-    filtered = filtered.filter((p) => p.productbrand === brand);
-  }
+    if (brand !== "All") {
+      result = result.filter((p) => p.productbrand === brand);
+    }
 
-  if (gender !== "All") {
-    filtered = filtered.filter((p) => p.gender === gender);
-  }
+    if (gender !== "All") {
+      result = result.filter((p) => p.gender === gender);
+    }
 
-  if (sort === "Low") {
-    filtered = [...filtered].sort((a, b) => a.price - b.price);
-  } else if (sort === "High") {
-    filtered = [...filtered].sort((a, b) => b.price - a.price);
-  }
+    if (sort === "Low") {
+      result = result.sort((a, b) => a.price - b.price);
+    } else if (sort === "High") {
+      result = result.sort((a, b) => b.price - a.price);
+    }
+
+    setFilteredProducts(result);
+  }, [products, searchQuery, brand, gender, sort]);
+
+  const brands = Array.from(new Set(products.map((p) => p.productbrand))).sort();
+  const genders = Array.from(new Set(products.map((p) => p.gender))).sort();
 
   const FilterSelect = ({
     value,
@@ -126,7 +142,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Filters */}
           <div className="flex flex-wrap gap-3 mb-8">
             <FilterSelect
               value={brand}
@@ -149,20 +164,18 @@ export default function Home() {
             </select>
           </div>
 
-          {/* Error Banner */}
           {error && (
             <div className="bg-[rgba(255,255,255,0.05)] border border-[#555] text-[#ccc] text-sm rounded-lg p-4 mb-6 text-center">
               &#x26a0;&#xfe0f; {error}
             </div>
           )}
 
-          {/* Products Grid */}
-          {!error && filtered.length === 0 ? (
+          {!error && filteredProducts.length === 0 ? (
             <p className="text-[#666] text-center py-12">No products match your filters.</p>
           ) : !error && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filtered.map((p, i) => (
-                <ProductCard key={i} product={p} />
+              {filteredProducts.map((p, i) => (
+                <ProductCard key={p.productid ?? i} product={p} />
               ))}
             </div>
           )}

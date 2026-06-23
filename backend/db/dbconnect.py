@@ -2,7 +2,7 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="backend/db/.env")
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 _connection = None
 

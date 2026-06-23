@@ -4,7 +4,7 @@ from google import genai
 from google.genai import errors
 from dotenv import load_dotenv
 from psycopg2.extras import RealDictCursor
-from backend.db.dbconnect import get_db_connection
+from db.dbconnect import get_db_connection
 
 load_dotenv(dotenv_path="backend/db/.env")
 
@@ -122,10 +122,20 @@ def build_local_response(query):
     return "\n".join(lines)
 
 def generate_response(query, history):
-    history.append(f"User: {query}")
+    filters = extract_filters(query)
+    has_filters = any([
+        filters["brands"],
+        filters["genders"],
+        filters["colors"],
+        filters["min_price"] is not None or filters["max_price"] is not None
+    ])
+
+    if has_filters:
+        reply = build_local_response(query)
+        history.append(f"Assistant: {reply}")
+        return reply, history
 
     try:
-        filters = extract_filters(query)
         rows = query_db(filters)
         context_str = ""
         for r in rows[:3]:
@@ -146,6 +156,6 @@ def generate_response(query, history):
         history.append(f"Assistant: {reply}")
         return reply, history
     except Exception:
-        reply = build_local_response(query)
+        reply = "I can only help with product-related queries, sir."
         history.append(f"Assistant: {reply}")
         return reply, history

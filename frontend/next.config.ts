@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const BACKEND_URL = process.env.API_BACKEND_URL || "http://127.0.0.1:8000";
+const BACKEND_URL = process.env.API_BACKEND_URL || "https://shopie-api.vercel.app";
 
 const nextConfig: NextConfig = {
   async rewrites() {

@@ -40,17 +40,33 @@ export default function Home() {
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    const words = q.split(/\s+/).filter((w) => w.length > 1 && !STOP_WORDS.has(w));
-    filtered = filtered.filter((p) => {
-      const name = p.productname.toLowerCase();
-      const brand = p.productbrand.toLowerCase();
-      const desc = p.description.toLowerCase();
-      const color = p.primarycolor.toLowerCase();
-      const gender = p.gender.toLowerCase();
-      return words.some(
-        (w) => name.includes(w) || brand.includes(w) || desc.includes(w) || color.includes(w) || gender.includes(w)
-      );
-    });
+    const words = q.split(/\s+/).filter((w) => w.length > 1 && !STOP_WORDS.has(w) && !/^\d+$/.test(w));
+    if (words.length > 0) {
+      filtered = filtered.filter((p) => {
+        const name = p.productname.toLowerCase();
+        const brand = p.productbrand.toLowerCase();
+        const desc = p.description.toLowerCase();
+        const color = p.primarycolor.toLowerCase();
+        const gender = p.gender.toLowerCase();
+        return words.some(
+          (w) => name.includes(w) || brand.includes(w) || desc.includes(w) || color.includes(w) || gender.includes(w)
+        );
+      });
+    }
+
+    const nums = q.match(/\d[\d,]*\d/g);
+    if (nums) {
+      const prices = nums.map((n) => parseInt(n.replace(/,/g, ""), 10));
+      if (/under|below|less than|within/.test(q) && prices.length > 0) {
+        filtered = filtered.filter((p) => p.price <= prices[0]);
+      } else if (/above|over|more than|greater than/.test(q) && prices.length > 0) {
+        filtered = filtered.filter((p) => p.price >= prices[0]);
+      } else if (/between/.test(q) && prices.length >= 2) {
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        filtered = filtered.filter((p) => p.price >= min && p.price <= max);
+      }
+    }
   }
 
   if (brand !== "All") {

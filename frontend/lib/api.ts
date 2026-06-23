@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://shopie-api.vercel.app";
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<{ data: T }> {
   const res = await fetch(`${BASE_URL}${path}`, {

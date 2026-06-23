@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from psycopg2.extras import RealDictCursor
-from backend.db.dbconnect import get_db_connection
+from db.dbconnect import get_db_connection
 
 router = APIRouter()
 

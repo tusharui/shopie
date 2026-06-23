@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import chat, products
+from routes import chat, products
 
 app = FastAPI(title="Shop Assistant API")
 

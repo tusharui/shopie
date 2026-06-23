@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.services.gemini_chain import generate_response
+from services.gemini_chain import generate_response
 
 router = APIRouter()
 
